@@ -1,0 +1,43 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: redis-registry-credential-cron
+spec:
+  schedule: "0 */6 * * *"
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2  
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          serviceAccountName: redis-service-account
+          terminationGracePeriodSeconds: 0
+          restartPolicy: Never
+          containers:
+          - name: kubectl
+            imagePullPolicy: IfNotPresent
+            image: registry.hub.docker.com/xynova/aws-kubectl:latest
+            command:
+            - "/bin/sh"
+            - "-c"
+            - |
+              AWS_ACCOUNT=135719648897
+              AWS_REGION=us-east-1
+              DOCKER_REGISTRY_SERVER=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com
+              DOCKER_USER=AWS
+              DOCKER_PASSWORD=`aws ecr get-login --region ${AWS_REGION} --registry-ids ${AWS_ACCOUNT} | cut -d' ' -f6`
+              kubectl delete secret redis-aws-secret --namespace=veo || true
+              kubectl create secret docker-registry redis-aws-secret --namespace=veo \
+              --docker-server=$DOCKER_REGISTRY_SERVER \
+              --docker-username=$DOCKER_USER \
+              --docker-password=$DOCKER_PASSWORD \
+              --docker-email=Quang.Nguyen@daugherty.com
+              kubectl patch serviceaccount default -p '{"imagePullSecrets":[{"name":"redis-aws-secret"}]}' --namespace=veo
+            env:                              # container | envoirnment vars needed for aws config 
+            - name: AWS_DEFAULT_REGION        # container | aws will auto detect this account region 
+              value: us-east-1
+            - name: AWS_SECRET_ACCESS_KEY     # container | aws will auto detect this account secret key and use it  
+              value: O7blAfYfyUqfvl/jCQ2xTZbTb9VzOoPpHgfycDsx
+            - name: AWS_ACCESS_KEY_ID         # container | aws will auto detect this account id and use it  
+              value: AKIAIEHUDBCXHJSQYERA
