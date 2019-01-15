@@ -38,6 +38,6 @@ spec:
             - name: AWS_DEFAULT_REGION        # container | aws will auto detect this account region 
               value: us-east-1
             - name: AWS_SECRET_ACCESS_KEY     # container | aws will auto detect this account secret key and use it  
-              value: O7blAfYfyUqfvl/jCQ2xTZbTb9VzOoPpHgfycDsx
+              value: XXXXXXXXXXXXXXXX
             - name: AWS_ACCESS_KEY_ID         # container | aws will auto detect this account id and use it  
-              value: AKIAIEHUDBCXHJSQYERA
+              value: XXXXXXXXXXXXXXXX
